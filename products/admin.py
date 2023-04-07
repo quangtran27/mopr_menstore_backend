@@ -20,3 +20,4 @@ class ProductAdmin(NestedModelAdmin):
 
 admin.site.register(Category)
 admin.site.register(Product, ProductAdmin)
+admin.site.register(ProductDetail)
