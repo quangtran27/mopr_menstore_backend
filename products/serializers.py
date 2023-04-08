@@ -13,8 +13,13 @@ class ProductSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Product
-        fields = ('name', 'desc', 'status', 'details', 'images')
+        fields = ('id', 'name', 'desc', 'status', 'details', 'images')
         depth = 1
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['id'].validators = [] 
     
     def get_images(self, obj):
         return [ { 'order': image.order, 'url': image.image.url, 'desc': image.desc,  } for image in obj.productimage_set.all() ]
+    
