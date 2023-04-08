@@ -10,13 +10,13 @@ class ReviewSerializer(serializers.ModelSerializer):
         model = Review
         fields = [
             'id', 
-            'user', 
+            'user',
             'created', 
             'star', 
             'desc', 
             'images'
         ]
-        depth = 1 
+        depth = 0
 
     def get_images(self, obj):
         return [image.image.url for image in obj.reviewimage_set.all()]

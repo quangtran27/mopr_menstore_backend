@@ -109,13 +109,13 @@ def search_products(request):
 
 @api_view(['GET'])
 def get_product(request, product_id):
-    success = True
+    success = False
     serializer = None
     selected = 0
     try:
         product = Product.objects.get(pk=product_id)
 
-        _selected = product.details.all()[0].id
+        _selected = product.productdetail_set.all()[0].id
         selected = request.GET.get('selected', _selected)
         
         # Check if selected item existed?
@@ -124,10 +124,9 @@ def get_product(request, product_id):
             selected = _selected
 
         serializer = ProductSerializer(product)
-        pass
+        success = True
     except Product.DoesNotExist:
         print(f'Sản phẩm có id {product_id} không tồn tại')
-        success = False
     except Exception as e:
         print(e)
 

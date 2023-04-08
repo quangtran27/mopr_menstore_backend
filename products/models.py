@@ -19,7 +19,7 @@ class Product(models.Model):
         return self.name
 
 class ProductDetail(models.Model):
-    product = models.ForeignKey(to=Product, on_delete=models.CASCADE, related_name='details')
+    product = models.ForeignKey(to=Product, on_delete=models.CASCADE)
     sold = models.PositiveIntegerField(default=0)
     quantity = models.PositiveIntegerField(default=0)
     on_sale = models.BooleanField(default=False)

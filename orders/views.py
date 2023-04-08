@@ -149,5 +149,5 @@ def update_order(request):
 
     return Response({
         'success': success, 
-        'message': message}
-    )
+        'message': message
+    })
