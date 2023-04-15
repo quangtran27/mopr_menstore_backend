@@ -3,7 +3,7 @@ from django.db import models
 from products.models import ProductDetail
 from users.models import User
 
-ORDER_STATUS = ((1, 'Chờ xác nhận'), (2, 'Đang chuẩn bị hàng'), (3, 'Đang giao hàng'), (4, 'Đã giao'), (5, 'Đã hủy'))
+ORDER_STATUS = ((1, 'Chờ xác nhận'), (2, 'Chờ lấy hàng'), (3, 'Đang giao hàng'), (4, 'Đã giao'), (5, 'Đã hủy'))
 ORDER_PAYMENT = ((1, 'COD'), (2, 'Chuyển khoản ngân hàng'), (3, 'Khác'))
 
 class Order(models.Model):
