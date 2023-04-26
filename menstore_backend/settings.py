@@ -27,7 +27,7 @@ SECRET_KEY = 'django-insecure-pbwk!@28=ym%qhc42z^^psefa&78dnrpfg7)6ou5twmzov7j!9
 DEBUG = True
 
 # Android Kolit app
-ALLOWED_HOSTS = [ '10.0.2.2', '127.0.0.1', 'localhost' ]
+ALLOWED_HOSTS = [ '10.0.2.2', '127.0.0.1', 'localhost', '172.20.10.4' ]
 
 
 # Application definition
@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'nested_inline',
 
     # Apps
+    'categories',
     'carts',
     'orders',
     'products',

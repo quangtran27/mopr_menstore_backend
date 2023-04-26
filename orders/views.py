@@ -1,3 +1,4 @@
+from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
@@ -6,31 +7,40 @@ from products.models import ProductDetail
 from users.models import User
 
 from .models import Order, OrderItem
-from .serialziers import OrderSerializer
+from .serialziers import OrderItemSerializer, OrderSerializer
 
 
 @api_view(['POST'])
 def add_order(request):
-    success = False
-    message = ''
-    order = None
+    user_id = (int) (request.POST.get('user_id'))
+    name = request.POST.get('name')
+    phone = request.POST.get('phone')
+    address = request.POST.get('address')
+    payment = (int) (request.POST.get('payment'))
+    cart_item_ids = request.POST.get('cart_item_ids')
+    note = request.POST.get('note')
+
+    ordrer_status = 1
+    is_paid = False
+    total = 0
 
     try:
-        user_phone = request.POST.get('user_phone')
-        name = request.POST.get('name')
-        phone = request.POST.get('phone')
-        address = request.POST.get('address')
-        payment = request.POST.get('payment')
-        note = request.POST.get('note')
-        cart_item_ids = request.POST.get('cart_item_ids').split(':')
-
-        status = 1
-        is_paid = False
-        total = 0
+        cart_item_ids = cart_item_ids.split(':')
+        # Check payment method:
+        if payment < 1 or payment > 3:
+            return Response({}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Check if any order items doesn't belong to user or cart has invalid quantity 
+        for cart_item_id in cart_item_ids:
+            cart_item = CartItem.objects.get(pk=cart_item_id)
+            product_detail = cart_item.product_detail
+            if cart_item.quantity > product_detail.quantity or cart_item.cart.user.id != user_id:
+                return Response({}, status=status.HTTP_400_BAD_REQUEST)
+            
 
         order = Order(
-            user=User.objects.get(phone=user_phone),
-            status=status,
+            user=User.objects.get(pk=user_id),
+            status=ordrer_status,
             name=name,
             phone=phone,
             address=address,
@@ -41,18 +51,6 @@ def add_order(request):
         )
         order.save()
 
-        # Check if any order items has invalid quantity
-        for cart_item_id in cart_item_ids:
-            cart_item = CartItem.objects.get(pk=cart_item_id)
-            product_detail = cart_item.product_detail
-            if cart_item.quantity > product_detail.quantity:
-                if order is not None:
-                    order.delete()
-                return Response({
-                    'success': False, 
-                    'message': 'Số lượng không hợp lệ!\nĐặt hàng không thành công'
-                })
-            
         for cart_item_id in cart_item_ids:
             cart_item = CartItem.objects.get(pk=cart_item_id)
             product_detail = cart_item.product_detail
@@ -73,81 +71,45 @@ def add_order(request):
             order.total += (order_item.sale_price if order_item.on_sale else order_item.price) * order_item.quantity
             order.save()
             cart_item.delete()
-        message = 'Đặt hàng thành công'
-        success = True
 
-    except Exception as e:
-        print(e)
-        if order is not None:
-            order.delete()
-        message = 'Đã xảy ra lỗi!\nĐặt hàng không thành công'
+        serialzier = OrderSerializer(order)
+        return Response(serialzier.data, status=status.HTTP_201_CREATED)
+    except AttributeError as attr_err:
+        print(attr_err)
+        return Response({}, status.HTTP_400_BAD_REQUEST)
+    except User.DoesNotExist:
+        return Response({}, status=status.HTTP_404_NOT_FOUND)
 
-    return Response({
-        'success': success, 
-        'message': message}
-    )
-    
-
-@api_view(['GET'])
-def get_order(request, order_id):
-    success = False
-    serializer = None
-    
-    try:
-        orders = Order.objects.filter(id=order_id)
-        serializer = OrderSerializer(orders, many=True)
-        success = True
-    except Exception as e:
-        print(e)
-    
-    return Response({
-        'success': success,
-        'data': serializer.data if serializer else []
-    })
-
-@api_view(['GET'])
-def get_orders_by_user(request, phone):
-    success = False
-    serializer = None
-    
-    try:
-        user = User.objects.get(phone=phone)
-        orders = user.order_set.all()
-        serializer = OrderSerializer(orders, many=True)
-        success = True
-    except Exception as e:
-        print(e)
-    
-    return Response({
-        'success': success,
-        'data': serializer.data if serializer else []
-    })
-
-@api_view(['POST'])
-def update_order(request):
-    success = False
-    message = ''
-
-    try:
-        order_id = request.POST.get('order_id')
-        status = request.POST.get('status')
+@api_view(['GET', 'PUT'])
+def get_or_update_order(request, order_id):
+    if request.method == 'GET':
+        try:
+            orders = Order.objects.get(id=order_id)
+            serializer = OrderSerializer(orders)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except Order.DoesNotExist:
+            return Response({}, status=status.HTTP_404_NOT_FOUND) 
+    elif request.method == 'PUT':
+        order_status = request.POST.get('order_status')
         is_paid = request.POST.get('is_paid')
-        order = Order.objects.get(pk=order_id)
-        if status is not None:
-            order.status = status
-        if is_paid is not None:
-            order.is_paid = is_paid
-        order.save()
-        success = True
-        message = 'Cập nhật thành công'
+        try:
+            order = Order.objects.get(pk=order_id)
+            if order_status is not None:
+                order.status = order_status
+            if is_paid is not None:
+                order.is_paid = is_paid
+            order.save()
+            return Response({}, status=status.HTTP_200_OK)
 
+        except Order.DoesNotExist:
+            return Response({}, status=status.HTTP_404_NOT_FOUND)
+    else: return Response({}, status.HTTP_405_METHOD_NOT_ALLOWED)
+
+@api_view(['GET'])
+def get_order_items(request, order_id):
+    try:
+        order_items = OrderItem.objects.filter(order_id=order_id)
+        serializer = OrderItemSerializer(order_items, many=True)
+        return Response(serializer.data, status.HTTP_200_OK)
     except Order.DoesNotExist:
-        message = 'Cập nhật không thành công!\nĐơn hàng không tồn tại'
-    except Exception as e:
-        print(e)
-        message = 'Cập nhật không thành công!\nĐã xảy ra lỗi'
-
-    return Response({
-        'success': success, 
-        'message': message
-    })
+        return Response([], status=status.HTTP_404_NOT_FOUND)

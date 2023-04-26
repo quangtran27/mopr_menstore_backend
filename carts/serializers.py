@@ -3,24 +3,24 @@ from rest_framework import serializers
 from .models import Cart, CartItem
 
 
+class CartSerializer(serializers.ModelSerializer):
+    user_id = serializers.SerializerMethodField()
+    class Meta:
+        model = Cart
+        fields = [
+            'id',
+            'user_id',
+        ]
+    def get_user_id(self, obj):
+        return obj.user.id
+
+
 class CartItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = CartItem
         fields = [
             'id',
-            'product_detail',
+            'cart_id',
+            'product_detail_id',
             'quantity',
         ]
-        depth = 1
-
-class CartSerializer(serializers.ModelSerializer):
-    cart_items = serializers.SerializerMethodField()
-
-    class Meta:
-        model = Cart
-        fields = ['id', 'cart_items']
-
-    def get_cart_items(self, obj):
-        _cart_items = obj.cartitem_set.all()
-        serializer = CartItemSerializer(_cart_items, many=True)
-        return serializer.data

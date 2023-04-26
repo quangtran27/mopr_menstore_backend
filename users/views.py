@@ -1,121 +1,57 @@
+from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+
+from carts.models import Cart
+from carts.serializers import CartSerializer
+from orders.serialziers import OrderSerializer
 
 from .models import User
 from .serializers import UserLoginSerializer, UserSerializer
 
 
 @api_view(['POST'])
-def register(request):
-    success = False
-    message = ''
-    try:
-        serializer = UserSerializer(data=request.data)
-        if serializer.is_valid():
-            success = True
-            serializer.save()
-            message = 'Đăng ký thành công!'
-        else:
-            message = 'Đăng ký không thành công!\nThông tin không hợp lệ'
-    except:
-        message = 'Đăng ký không thành công!\nĐã có lỗi xảy ra'
-    
-    return Response({
-            'success': success,
-            'message': message
-        })
-
-@api_view(['POST'])
 def login(request):
-    success = False
-    message = ''
-    try:
-        serializer = UserLoginSerializer(data=request.data)
-        if serializer.is_valid():
-            user = User.objects.filter(phone=serializer.validated_data['phone'], password=serializer.validated_data['password']).first()
-            if user:
-                success = True
-                message = 'Đăng nhập thành công!'
-            else:
-                message = 'Đăng nhập không thành công!\nTài khoản hoặc mật khẩu chưa chính xác'
-            
-        else:
-            message = 'Đăng nhập không thành công!\nThông tin không hợp lệ'
-    except:
-        message = 'Đăng nhập không thành công!\nĐã có lỗi xảy ra'
-    
-    return Response({
-            'success': success,
-            'message': message
-        })
-
-@api_view(['POST'])
-def change_password(request):
-    success = False
-    message = ''
-    try:
-        phone = request.POST.get('phone')
-        old_password = request.POST.get('old-password')
-        new_password = request.POST.get('new-password')
-        if old_password != new_password:
-            user = User.objects.filter(phone=phone, password=old_password).first()
-            if user:
-                user.password = new_password
-                user.save()
-                success = True
-                message = 'Thay đổi mật khẩu thành công'
-            else:
-                message = 'Mật khẩu chưa chính xác'
-        else:
-            message = 'Mật khẩu mới không được trùng với mật khẩu hiện tại'
-    except:
-        message = 'Thay đổi mật khẩu không thành công!\nĐã có lỗi xảy ra'
-
-    return Response({
-            'success': success,
-            'message': message
-        })
-
-@api_view(['GET'])
-def get_user(request, phone):
-	success= False
-	serializer = None
-
-	try: 
-		user = User.objects.filter(phone=phone)
-		serializer = UserSerializer(user, many=True)
-		success = True
-	except:
-		pass
-
-	return Response({
-		'success': success,
-		'data': serializer.data if serializer else []
-	})
-
-@api_view(['POST'])
-def update_user(request):
-    success = False
-    message = ''
-    try:
-        # Get parameters from request
-        phone = request.POST.get('phone')
-        name = request.POST.get('name')
-        address = request.POST.get('address')
-        birthday = request.POST.get('birthday')
-        email = request.POST.get('email')
-        image = request.FILES.get('image')
-
-        # Check if user exists
+    user_login_serializer = UserLoginSerializer(data=request.data)
+    if user_login_serializer.is_valid():
         try:
-            user = User.objects.get(phone=phone)
+            user = User.objects.get(phone=user_login_serializer.validated_data['phone'], password=user_login_serializer.validated_data['password'])
+            serializer = UserSerializer(user)
+            return Response(serializer.data, status=status.HTTP_200_OK)
         except User.DoesNotExist:
-            return Response({
-                'success': False, 
-                'message': 'Người dùng không tồn tại'
-            })
+            return Response({}, status=status.HTTP_401_UNAUTHORIZED)
+    else:
+        return Response({}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Update user data
+@api_view(['POST'])
+def register(request):
+    serializer = UserSerializer(data=request.data)
+    if serializer.is_valid():
+        user = serializer.save()
+        serializer = UserSerializer(user)
+        return Response(serializer.data, status.HTTP_201_CREATED)
+    else:
+        return Response({}, status=status.HTTP_400_BAD_REQUEST)
+    
+@api_view(['GET'])
+def get_user_info(request, user_id):
+    try: 
+        user = User.objects.get(pk=user_id)
+        user.password = ''
+        serializer = UserSerializer(user)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    except User.DoesNotExist:
+        return Response({}, status=status.HTTP_404_NOT_FOUND)
+
+@api_view(['POST'])
+def update_user(request, user_id):
+    name = request.POST.get('name')
+    address = request.POST.get('address')
+    birthday = request.POST.get('birthday')
+    email = request.POST.get('email')
+    image = request.FILES.get('image')
+    try:
+        user = User.objects.get(user_id)
         user.name = name
         if image:
             user.image = image
@@ -123,15 +59,42 @@ def update_user(request):
         user.birthday = birthday
         user.email = email
         user.save()
+        return Response({}, status=status.HTTP_200_OK)
+    except User.DoesNotExist:
+        return Response({}, status=status.HTTP_400_BAD_REQUEST)
 
-        success = True
-        message = 'Cập nhật thành công'
 
-    except Exception as e:
-        print(e)
-        message = 'Đã xảy ra lỗi!\nCập nhật không thành công'
+@api_view(['POST'])
+def change_password(request, user_id):
+    old_password = request.POST.get('old_password')
+    new_password = request.POST.get('new_password')
+    if (new_password is not None and len(new_password) >= 8) and (old_password != new_password):
+        try:
+            user = User.objects.get(pk=user_id, password=old_password)
+            user.password = new_password
+            user.save()
+            return Response({}, status=status.HTTP_200_OK)
+        except User.DoesNotExist:
+            return Response({}, status=status.HTTP_404_NOT_FOUND) 
+    else:
+        return Response({}, status=status.HTTP_400_BAD_REQUEST)
     
-    return Response({
-        'success': success,
-        'message': message
-    })
+@api_view(['GET'])
+def get_user_orders(request, user_id):
+    try:
+        user = User.objects.get(pk=user_id)
+        orders = user.orders.all()
+        serializer = OrderSerializer(orders, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    except User.DoesNotExist:
+        return Response({}, status=status.HTTP_404_NOT_FOUND)
+
+@api_view(['GET'])
+def get_user_cart(request, user_id):
+    try:
+        user = User.objects.get(user_id)
+        cart = Cart.objects.get_or_create(user=user)
+        serializer = CartSerializer(cart)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    except User.DoesNotExist:
+        return Response({}, status=status.HTTP_404_NOT_FOUND)

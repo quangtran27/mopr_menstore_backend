@@ -1,19 +1,25 @@
 from rest_framework import serializers
 
-from .models import Category, Product, ProductDetail
+from .models import Product, ProductDetail, ProductImage
 
 
-class CategorySerializer(serializers.ModelSerializer):
+class ProductSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Category
-        fields = ('id', 'name', 'desc', 'image')
-
+        model = Product
+        fields = [ 
+            'id', 
+            'category_id',
+            'name', 
+            'desc', 
+            'status', 
+        ]
+        
 class ProductDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProductDetail
         fields = [
             'id', 
-            'product', 
+            'product_id', 
             'sold', 
             'quantity', 
             'on_sale',
@@ -23,24 +29,13 @@ class ProductDetailSerializer(serializers.ModelSerializer):
             'color',
         ]
 
-class ProductSerializer(serializers.ModelSerializer):
-    images = serializers.SerializerMethodField()
-    details = serializers.SerializerMethodField()
-
+class ProductImageSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Product
-        fields = ('id', 'name', 'category', 'desc', 'status', 'details', 'images')
-        depth = 0
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields['id'].validators = []
-
-    def get_details(self, obj):
-        product_details = obj.productdetail_set.all()
-        serializer = ProductDetailSerializer(product_details, many=True)
-        return serializer.data
-    
-    def get_images(self, obj):
-        return [ { 'order': image.order, 'url': image.image.url, 'desc': image.desc,  } for image in obj.productimage_set.all() ]
-    
+        model = ProductImage
+        fields = [
+            'id',
+            'product_id',
+            'order',
+            'image',
+            'desc',
+        ]

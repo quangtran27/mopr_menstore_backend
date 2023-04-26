@@ -7,6 +7,7 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = [
+            'id',
             'name',
             'phone',
             'password',
@@ -25,4 +26,4 @@ class UserLoginSerializer(serializers.ModelSerializer):
         ]
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['phone'].validators = [] 
+        self.fields['phone'].validators = []

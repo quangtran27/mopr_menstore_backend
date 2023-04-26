@@ -7,7 +7,7 @@ ORDER_STATUS = ((1, 'Chờ xác nhận'), (2, 'Chờ lấy hàng'), (3, 'Đang g
 ORDER_PAYMENT = ((1, 'COD'), (2, 'Chuyển khoản ngân hàng'), (3, 'Khác'))
 
 class Order(models.Model):
-    user = models.ForeignKey(to=User, on_delete=models.CASCADE)
+    user = models.ForeignKey(to=User, on_delete=models.CASCADE, related_name='orders')
     created = models.DateField(auto_now_add=True)
     updated = models.DateField(auto_now=True)
     status = models.IntegerField(choices=ORDER_STATUS)

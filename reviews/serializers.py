@@ -4,31 +4,22 @@ from .models import Review, ReviewImage
 
 
 class ReviewSerializer(serializers.ModelSerializer):
-    images = serializers.SerializerMethodField()
-
     class Meta:
         model = Review
         fields = [
             'id', 
-            'user',
+            'user_id',
+            'product_id',
             'created', 
             'star', 
             'desc', 
-            'images'
         ]
-        depth = 0
 
-    def get_images(self, obj):
-        return [image.image.url for image in obj.reviewimage_set.all()]
-    
-class AddReviewSerializer(serializers.ModelSerializer):
+class ReviewImageSerialzier(serializers.ModelSerializer):
     class Meta:
-        model = Review
+        model = ReviewImage
         fields = [
             'id',
-            'user', 
-            'phone',
-            'created', 
-            'star', 
-            'desc',
+            'review_id',
+            'image',
         ]
