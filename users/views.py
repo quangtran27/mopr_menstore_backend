@@ -93,7 +93,7 @@ def get_user_orders(request, user_id):
 def get_user_cart(request, user_id):
     try:
         user = User.objects.get(user_id)
-        cart = Cart.objects.get_or_create(user=user)
+        cart, _ = Cart.objects.get_or_create(user=user)
         serializer = CartSerializer(cart)
         return Response(serializer.data, status=status.HTTP_200_OK)
     except User.DoesNotExist:
