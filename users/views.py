@@ -92,8 +92,9 @@ def get_user_orders(request, user_id):
 @api_view(['GET'])
 def get_user_cart(request, user_id):
     try:
-        user = User.objects.get(user_id)
+        user = User.objects.get(id=user_id)
         cart, _ = Cart.objects.get_or_create(user=user)
+        print('cart: ',cart)
         serializer = CartSerializer(cart)
         return Response(serializer.data, status=status.HTTP_200_OK)
     except User.DoesNotExist:
