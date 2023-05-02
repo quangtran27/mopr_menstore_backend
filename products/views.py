@@ -63,7 +63,7 @@ def get_latest_products(request):
 def search_products(request):
     keyword = request.GET.get('keyword', '')
     page = (int) (request.GET.get('page', '1'))
-    sort_by = request.GET.get('sort_by', 'price')
+    sort_by = request.GET.get('sort_by', '')
     order = request.GET.get('order', 'asc')
     category_id = (int) (request.GET.get('category_id', '0'))
     min_price = (int) (request.GET.get('min_price', '0'))

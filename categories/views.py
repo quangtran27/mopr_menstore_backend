@@ -9,6 +9,30 @@ from .serializers import CategorySerializer
 @api_view(['GET'])
 def get_all_categories(request):
     categories = Category.objects.all()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     serializer = CategorySerializer(categories, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
 

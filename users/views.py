@@ -43,28 +43,40 @@ def get_user_info(request, user_id):
     except User.DoesNotExist:
         return Response({}, status=status.HTTP_404_NOT_FOUND)
 
-@api_view(['POST'])
-def update_user(request, user_id):
-    name = request.POST.get('name')
-    address = request.POST.get('address')
-    birthday = request.POST.get('birthday')
-    email = request.POST.get('email')
-    image = request.FILES.get('image')
-    try:
-        user = User.objects.get(user_id)
-        user.name = name
-        if image:
-            user.image = image
-        user.address = address
-        user.birthday = birthday
-        user.email = email
-        user.save()
-        return Response({}, status=status.HTTP_200_OK)
-    except User.DoesNotExist:
-        return Response({}, status=status.HTTP_400_BAD_REQUEST)
+@api_view(['GET', 'PATCH'])
+def get_or_update_user(request, user_id):
+    if request.method == 'GET':
+        try: 
+            user = User.objects.get(pk=user_id)
+            user.password = ''
+            serializer = UserSerializer(user)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except User.DoesNotExist:
+            return Response({}, status=status.HTTP_404_NOT_FOUND)
+    elif request.method == 'PATCH':
+        name = request.POST.get('name')
+        address = request.POST.get('address')
+        birthday = request.POST.get('birthday')
+        email = request.POST.get('email')
+        image = request.FILES.get('image')
+        try:
+            user = User.objects.get(id=user_id)
+            user.name = name
+            user.address = address
+            user.birthday = birthday
+            user.email = email
+            if image:
+                user.image = image
+            user.save()
+            return Response({}, status=status.HTTP_200_OK)
+        except User.DoesNotExist:
+            return Response({}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            print(e)
+            return Response({}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-@api_view(['POST'])
+@api_view(['PATCH'])
 def change_password(request, user_id):
     old_password = request.POST.get('old_password')
     new_password = request.POST.get('new_password')
