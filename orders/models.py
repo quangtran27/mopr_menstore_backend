@@ -16,6 +16,7 @@ class Order(models.Model):
     address = models.CharField(max_length=255)
     payment = models.IntegerField(choices=ORDER_PAYMENT)
     is_paid = models.BooleanField(default=False)
+    is_reviewed = models.BooleanField(default=False)
     note = models.TextField()
     total = models.PositiveIntegerField()
 

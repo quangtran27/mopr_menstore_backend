@@ -90,19 +90,22 @@ def get_or_update_order(request, order_id):
         except Order.DoesNotExist:
             return Response({}, status=status.HTTP_404_NOT_FOUND) 
     elif request.method == 'PUT':
-        order_status = request.POST.get('order_status')
+        order_status = request.POST.get('status')
         is_paid = request.POST.get('is_paid')
+        is_reviewed = request.POST.get('is_reviewed')
         try:
             order = Order.objects.get(pk=order_id)
-            if order_status is not None:
-                order.status = order_status
-            if is_paid is not None:
-                order.is_paid = is_paid
-            order.save()
-            return Response({}, status=status.HTTP_200_OK)
-
         except Order.DoesNotExist:
             return Response({}, status=status.HTTP_404_NOT_FOUND)
+        if order_status is not None:
+            order.status = order_status
+        if is_paid is not None:
+            order.is_paid = is_paid
+        if is_reviewed is not None: 
+            order.is_reviewed = is_reviewed
+        order.save()
+        return Response({}, status=status.HTTP_200_OK)
+
     else: return Response({}, status.HTTP_405_METHOD_NOT_ALLOWED)
 
 @api_view(['GET'])

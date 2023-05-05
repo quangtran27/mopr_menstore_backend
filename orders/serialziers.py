@@ -17,6 +17,7 @@ class OrderSerializer(serializers.ModelSerializer):
             'address',
             'payment',
             'is_paid',
+            'is_reviewed',
             'note',
             'total',
         ]
