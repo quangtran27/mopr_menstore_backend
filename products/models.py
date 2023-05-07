@@ -29,7 +29,7 @@ class ProductImage(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     order = models.PositiveIntegerField(default=1)
     image = models.ImageField(upload_to='images/product/%Y/%m/%D/', blank=True, null=True)
-    desc = models.CharField(max_length=200, default='')
+    desc = models.CharField(max_length=200, default='', blank=True)
 
     def __str__(self) -> str:
         return f'{self.product.name} #{self.order}'
