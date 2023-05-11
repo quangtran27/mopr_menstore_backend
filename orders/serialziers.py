@@ -16,6 +16,7 @@ class OrderSerializer(serializers.ModelSerializer):
             'phone',
             'address',
             'payment',
+            'shipping_fee',
             'is_paid',
             'is_reviewed',
             'note',

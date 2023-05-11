@@ -15,13 +15,14 @@ class Order(models.Model):
     phone = models.CharField(max_length=20)
     address = models.CharField(max_length=255)
     payment = models.IntegerField(choices=ORDER_PAYMENT)
+    shipping_fee = models.PositiveIntegerField(default=0)
     is_paid = models.BooleanField(default=False)
     is_reviewed = models.BooleanField(default=False)
     note = models.TextField()
     total = models.PositiveIntegerField()
 
     def __str__(self) -> str:
-        return f'{self.created} {self.phone}'
+        return f'{self.created} - {self.phone} - {self.name}'
 
 class OrderItem(models.Model):
     order = models.ForeignKey(to=Order, on_delete=models.CASCADE)

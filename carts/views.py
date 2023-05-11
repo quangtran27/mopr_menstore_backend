@@ -59,29 +59,25 @@ def get_or_add_cart_items(request, cart_id: int):
         
 @api_view(['PUT', 'DELETE'])
 def update_or_delete_cart_item(request, cart_id: int, cart_item_id: int):
+    try:
+        cart = Cart.objects.get(id=cart_id)
+        cart_item = CartItem.objects.get(id=cart_item_id)
+    except (Cart.DoesNotExist, CartItem.DoesNotExist):
+        return Response({}, status.HTTP_404_NOT_FOUND)
+
     if request.method == 'PUT': # update cart item
         try:
-            cart_item = CartItem.objects.get(pk=cart_item_id,cart_id=cart_id)
-            action = request.POST.get('action') # increase, decrease
-            if action == 'increase' or action == 'decrease':
-                if action == 'increase' and (cart_item.quantity + 1 <= cart_item.product_detail.quantity):
-                    cart_item.quantity = cart_item.quantity + 1
-                    cart_item.save()
-                elif action == 'decrease' and (cart_item.quantity > 1):
-                    cart_item.quantity = cart_item.quantity - 1
-                    cart_item.save()
-                else:
-                    return Response({}, status.HTTP_400_BAD_REQUEST)
-                serializer = CartItemSerializer(cart_item)
-                return Response(serializer.data, status=status.HTTP_200_OK)
-            else:
-                return Response({}, status=status.HTTP_400_BAD_REQUEST)
-        except CartItem.DoesNotExist or IndexError:
-            return Response({}, status=status.HTTP_404_NOT_FOUND)
-    elif request.method == 'DELETE': # delete cart item
-        try:
-            cart_item = CartItem.objects.get(pk=cart_item_id,cart_id=cart_id)
-            cart_item.delete()
-            return Response({}, status=status.HTTP_200_OK)
-        except CartItem.DoesNotExist or IndexError:
-            return Response({}, status=status.HTTP_404_NOT_FOUND)
+            quantity = (int) (request.POST.get('quantity'))
+        except ValueError as e:
+            print(e)
+            return Response({}, status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+        if (quantity <= 0) or (quantity > cart_item.product_detail.quantity):
+            return Response({}, status.HTTP_400_BAD_REQUEST)
+        
+        cart_item.quantity = quantity
+        cart_item.save()
+        return Response(CartItemSerializer(cart_item).data, status=status.HTTP_200_OK)
+    else: # delete cart item
+        cart_item.delete()
+        return Response({}, status=status.HTTP_200_OK)

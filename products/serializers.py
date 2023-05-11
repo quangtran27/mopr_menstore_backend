@@ -13,7 +13,27 @@ class ProductSerializer(serializers.ModelSerializer):
             'desc', 
             'status', 
         ]
-        
+
+
+class ProductSerializer2(serializers.ModelSerializer):
+    details = serializers.SerializerMethodField()
+    images = serializers.SerializerMethodField()
+    class Meta:
+        model = Product
+        fields = (
+            'id', 
+            'category_id',
+            'name', 
+            'desc', 
+            'status',
+            'details',
+            'images',
+        )   
+    def get_details(self, obj):
+        return [ ProductDetailSerializer(detail).data for detail in obj.productdetail_set.all() ]
+    def get_images(self, obj):
+        return [ image.image.url  for image in obj.productimage_set.all() ]
+
 class ProductDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProductDetail

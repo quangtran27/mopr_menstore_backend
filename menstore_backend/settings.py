@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'nested_inline',
 
     # Apps
+    'banners',
     'categories',
     'carts',
     'orders',
