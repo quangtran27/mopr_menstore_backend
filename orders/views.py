@@ -25,7 +25,7 @@ def add_order(request):
     total = 0
 
     try:
-        cart_item_ids = cart_item_ids.split(':')
+        cart_item_ids = cart_item_ids.split(',')
         # Check payment method:
         if payment < 1 or payment > 3:
             return Response({}, status=status.HTTP_400_BAD_REQUEST)
