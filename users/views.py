@@ -43,7 +43,7 @@ def get_user_info(request, user_id):
     except User.DoesNotExist:
         return Response({}, status=status.HTTP_404_NOT_FOUND)
 
-@api_view(['GET', 'PATCH'])
+@api_view(['GET', 'PUT'])
 def get_or_update_user(request, user_id):
     if request.method == 'GET':
         try: 
@@ -53,7 +53,7 @@ def get_or_update_user(request, user_id):
             return Response(serializer.data, status=status.HTTP_200_OK)
         except User.DoesNotExist:
             return Response({}, status=status.HTTP_404_NOT_FOUND)
-    elif request.method == 'PATCH':
+    elif request.method == 'PUT':
         name = request.POST.get('name')
         address = request.POST.get('address')
         birthday = request.POST.get('birthday')
@@ -76,7 +76,7 @@ def get_or_update_user(request, user_id):
             return Response({}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-@api_view(['PATCH'])
+@api_view(['PUT'])
 def change_password(request, user_id):
     old_password = request.POST.get('old_password')
     new_password = request.POST.get('new_password')

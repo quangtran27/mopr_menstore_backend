@@ -36,7 +36,6 @@ def add_order(request):
             product_detail = cart_item.product_detail
             if cart_item.quantity > product_detail.quantity or cart_item.cart.user.id != user_id:
                 return Response({}, status=status.HTTP_400_BAD_REQUEST)
-            
 
         order = Order(
             user=User.objects.get(pk=user_id),

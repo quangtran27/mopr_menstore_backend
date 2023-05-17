@@ -1,7 +1,7 @@
 from unicodedata import category
 
 from django.core.paginator import EmptyPage, Paginator
-from django.db.models import Avg, Max, Min, Q, Sum
+from django.db.models import Avg, Case, Max, Min, Q, Sum, When
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -24,31 +24,39 @@ def get_all_products(request):
     page = request.GET.get('page')
     page_size = request.GET.get('page_size', PAGE_SIZE)
     name = request.GET.get('name')
-    category_id = request.GET.get('category_id', '0')
-    min_price = request.GET.get('min_price')
-    max_price = request.GET.get('max_price')
+    category_id = request.GET.get('categoryId', '0')
+    min_price = request.GET.get('minPrice')
+    max_price = request.GET.get('maxPrice')
     star = request.GET.get('star')
-    sort_by = request.GET.get('sort_by', '')
+    sort_by = request.GET.get('sortBy', '')
     order = request.GET.get('order', 'asc')
 
     products = Product.objects.filter(status=True)
 
     # Filter
     if name is not None:
-        products = products.filter(Q(name__icontains=name) | Q(desc__icontains=name))
+        products = products.filter(name__icontains=name)
     if (int) (category_id) > 0:
         products = products.filter(category__id=category_id)
-    if min_price is not None:
-        products = products.filter(productdetail__price__gte=min_price)
-    if max_price is not None:
-        products = products.filter(productdetail__price__lte=max_price)
+    if min_price is not None and max_price is not None:
+        try:
+            min_price = (int) (min_price)
+            max_price = (int) (max_price)
+            products = products.filter(
+                Q(productdetail__on_sale=False, productdetail__price__range=(min_price, max_price)) |
+                Q(productdetail__on_sale=True, productdetail__sale_price__range=(min_price, max_price))
+            ).distinct()
+        except:
+            products = []
     if star is not None:
         if (int) (star) > 0: 
             products = products.annotate(avg_star=Avg('review__star')).filter(avg_star__gte=star)
     
     # Sort
     if sort_by == 'price':
-        products = products.order_by('productdetail__price').distinct()
+        products = products.annotate(
+            min_price=Min('productdetail__price')
+        ).order_by('min_price').distinct()
     elif sort_by == 'created':
         products = products.order_by('-id')
     elif sort_by == 'sales':

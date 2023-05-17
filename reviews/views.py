@@ -17,6 +17,7 @@ def add_review(request):
     desc = request.POST.get('desc')
     images = request.FILES.getlist('images')
     if (user_id is not None) and (product_id is not None) and (desc is not None) and (images is not None) and (star is not None and star > 1 and star <= 5):
+
         try:
             user = User.objects.get(pk=user_id)
             product = Product.objects.get(pk=product_id)
