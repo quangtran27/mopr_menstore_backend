@@ -1,10 +1,14 @@
+from django.contrib.auth import authenticate
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
 from carts.models import Cart
 from carts.serializers import CartSerializer
+from notifications.models import Notification
+from notifications.serializers import NotificationSerializer
 from orders.serialziers import OrderSerializer
+from users import serializers
 
 from .models import User
 from .serializers import UserLoginSerializer, UserSerializer
@@ -22,6 +26,18 @@ def login(request):
             return Response({}, status=status.HTTP_401_UNAUTHORIZED)
     else:
         return Response({}, status=status.HTTP_400_BAD_REQUEST)
+    
+@api_view(['POST'])
+def staff_login(request):
+    user_login_serializer = UserLoginSerializer(data=request.data)
+    if user_login_serializer.is_valid():
+        try:
+            user = User.objects.get(phone=user_login_serializer.validated_data['phone'], password=user_login_serializer.validated_data['password'], is_staff=True)
+            return Response(UserSerializer(user).data, status.HTTP_200_OK)
+        except User.DoesNotExist:
+            return Response({}, status.HTTP_401_UNAUTHORIZED)
+    else:
+        return Response({}, status.HTTP_400_BAD_REQUEST)
 
 @api_view(['POST'])
 def register(request):
@@ -98,6 +114,16 @@ def get_user_orders(request, user_id):
         orders = user.orders.all()
         serializer = OrderSerializer(orders, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+    except User.DoesNotExist:
+        return Response({}, status=status.HTTP_404_NOT_FOUND)
+
+@api_view(['GET'])
+def get_user_notifications(request, user_id):
+    try:
+        user = User.objects.get(id=user_id)
+        notifications = user.notification_set.all().order_by('-id')
+        serializer = NotificationSerializer(notifications, many=True)
+        return Response(serializer.data, status.HTTP_200_OK)
     except User.DoesNotExist:
         return Response({}, status=status.HTTP_404_NOT_FOUND)
 

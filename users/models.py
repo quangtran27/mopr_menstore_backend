@@ -10,5 +10,6 @@ class User(models.Model):
     email = models.CharField(unique=True, blank=True, max_length=255)
     image = models.ImageField(upload_to='images/user/%Y/%m/%D/', blank=True, null=True)
     address = models.CharField(max_length=200, default='')
+    is_staff = models.BooleanField(default=False)
     def __str__(self) -> str:
         return self.phone

@@ -16,6 +16,7 @@ class UserSerializer(serializers.ModelSerializer):
             'email',
             'address',
             'image',
+            'is_staff',
         ]
 
 class UserLoginSerializer(serializers.ModelSerializer):

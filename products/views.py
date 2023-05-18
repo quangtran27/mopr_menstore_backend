@@ -1,3 +1,5 @@
+from itertools import product
+from math import prod
 from unicodedata import category
 
 from django.core.paginator import EmptyPage, Paginator
@@ -16,8 +18,7 @@ from .serializers import (
     ProductSerializer2,
 )
 
-PAGE_SIZE = 12
-
+PAGE_SIZE = 4
 
 @api_view(['GET'])
 def get_all_products(request):
@@ -98,6 +99,24 @@ def get_latest_products(request):
     latest_products = Product.objects.order_by('-id')[:8]
     serializer = ProductSerializer(latest_products, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK) 
+
+@api_view(['GET', 'PUT'])
+def get_or_update_product(request, product_id):
+    try:
+        product = Product.objects.get(id=product_id)
+    except:
+        return Response({}, status.HTTP_404_NOT_FOUND)
+    if request.method == 'GET':
+        return Response(ProductSerializer(product).data, status.HTTP_200_OK)
+    else:
+        product_status = request.POST.get('status') # true false
+        if product_status == 'True' or product_status == 'False':
+            product.status = True if product_status == 'True' else False
+            product.save()
+            return Response(ProductSerializer(product).data, status.HTTP_200_OK)
+        else:
+            return Response({}, status.HTTP_400_BAD_REQUEST) 
+
 
 @api_view(['GET'])
 def get_product(request, product_id):
