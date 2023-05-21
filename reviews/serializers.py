@@ -18,8 +18,4 @@ class ReviewSerializer(serializers.ModelSerializer):
 class ReviewImageSerialzier(serializers.ModelSerializer):
     class Meta:
         model = ReviewImage
-        fields = [
-            'id',
-            'review_id',
-            'image',
-        ]
+        fields = ( 'id', 'review_id', 'image' )

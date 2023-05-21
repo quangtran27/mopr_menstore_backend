@@ -12,7 +12,7 @@ urlpatterns = (
     path('products/top-sales', views.get_top_sale_products),
     path('products/latest', views.get_latest_products),
 
-    # Test
-    path('api/products', views.get_all_products_api),
-    path('api/products/top-sales', views.get_top_sales_products_api),
+    # # Test
+    # path('api/products', views.get_all_products_api),
+    # path('api/products/top-sales', views.get_top_sales_products_api),
 )
